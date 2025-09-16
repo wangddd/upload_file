@@ -9,7 +9,7 @@ from sh import bash
 
 app = Flask(__name__)
 app.secret_key = 'asdasd'  # Change this!
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)  # 设置session超时为30分钟
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1)  # 设置session超时分钟
 
 
 login_manager = flask_login.LoginManager() # 初始化一个 LoginManager 类对象
@@ -20,7 +20,7 @@ login_manager.login_message = 'Access denied.'
 
 login_manager.init_app(app) # 配置该对象
 
-users = {'syspfm_up': {'password': '123456'}}
+users = {'syspfm_up': {'password': '123456'}} #账号密码
 
 class User(flask_login.UserMixin):
     pass
@@ -44,6 +44,7 @@ def request_loader(request):
     user.id = email
     return user
 
+# 登录逻辑
 @app.route('/mini/login', methods=['GET', 'POST'])
 def login():
     if flask.request.method == 'GET':
@@ -65,6 +66,7 @@ def login():
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16 MB
 
+# 上传文件保存路径
 UPLOAD_FOLDER = '/opt/uploads'
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -84,11 +86,12 @@ def allowed_file(filename):
 def index():
     return flask.render_template('index.html', error=True)
 
+# 上传文件逻辑
 @app.route('/mini/upload', methods=['GET','POST'])
-@flask_login.login_required
+@flask_login.login_required # 需要登录
 def upload_file():
     if flask.request.method == 'GET':
-        return render_template('index.html')
+        return render_template('index.html') # 渲染index页面
     
     if 'file' not in request.files:
         return redirect(request.url)
@@ -101,6 +104,7 @@ def upload_file():
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        print(bash("/opt/Script/rsync_file.sh")) #上传成功后，执行脚本同步文件
         return 'File uploaded successfully!'
     
     return redirect(request.url)
