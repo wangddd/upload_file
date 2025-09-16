@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>File Upload</title>
+  </head>
+  <body>
+    <h1>Upload a file</h1>
+    <form id="uploadForm" method="post" enctype="multipart/form-data" action="/mini/upload">
+      <input type="file" name="file">
+      <input type="submit" value="Upload">
+    </form>
+    <progress id="progressBar" value="0" max="100" style="width:100%;"></progress>
+    <p id="status"></p>
+    <h2>Uploaded Files</h2>
+    <ul>
+      {% for filename in files %}
+        <li>
+          {{ filename }}
+          <form method="post" action="/delete" style="display:inline;">
+            <input type="hidden" name="filename" value="{{ filename }}">
+            <input type="submit" value="Delete">
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+    <script>
+      document.getElementById('uploadForm').onsubmit = function(event) {
+        event.preventDefault();
+        var formData = new FormData(this);
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener('progress', function(event) {
+          if (event.lengthComputable) {
+            var percentComplete = (event.loaded / event.total) * 100;
+            document.getElementById('progressBar').value = percentComplete;
+            document.getElementById('status').innerText = Math.round(percentComplete) + '% uploaded';
+          }
+        }, false);
+        xhr.addEventListener('load', function(event) {
+          if (xhr.status == 200) {
+            document.getElementById('status').innerText = 'Upload complete!';
+            window.location.reload();
+          } else {
+            document.getElementById('status').innerText = 'Upload failed!';
+          }
+        }, false);
+        xhr.open('POST', '/mini/upload', true);
+        xhr.send(formData);
+      };
+    </script>
+  </body>
+</html>
